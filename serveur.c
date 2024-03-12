@@ -13,29 +13,40 @@
 #define MAX_CLIENTS 30
 #define BUFFER_SIZE 1024
 
-int client_socket[MAX_CLIENTS];
+struct Joueur {
+    int socket_id;
+    char nom_utilisateur[20];
+    struct Joueur *suivant;
+};
+
+struct Joueur *premier_joueur = NULL;
+int nombre_joueurs = 0;
 
 void error(const char *msg) {
     perror(msg);
     exit(1);
 }
 
-void init_client_socket_array() {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        client_socket[i] = 0;
+void ajouter_joueur(int socket_id) {
+    struct Joueur *nouveau_joueur = (struct Joueur *)malloc(sizeof(struct Joueur));
+    if (nouveau_joueur == NULL) {
+        error("Erreur lors de l'allocation de mémoire pour le joueur");
     }
+    nouveau_joueur->socket_id = socket_id;
+    sprintf(nouveau_joueur->nom_utilisateur, "Joueur %d", nombre_joueurs + 1);
+    nouveau_joueur->suivant = premier_joueur;
+    premier_joueur = nouveau_joueur;
+    nombre_joueurs++;
+    printf("Joueur ajouté : ID socket %d, Nom : %s\n", socket_id, nouveau_joueur->nom_utilisateur);
 }
 
-int main(int argc, char *argv[]) {
-    int master_socket, addrlen, new_socket, activity, i, valread, sd;
+int main() {
+    int master_socket, addrlen, new_socket, activity, valread;
     int max_sd;
     struct sockaddr_in address;
-    
     char buffer[BUFFER_SIZE];
 
     fd_set readfds;
-
-    init_client_socket_array();
 
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         error("socket a échoué");
@@ -45,7 +56,7 @@ int main(int argc, char *argv[]) {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
 
-    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0) {
+    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
         error("liaison a échoué");
     }
     printf("Écouteur sur le port %d \n", PORT);
@@ -57,15 +68,18 @@ int main(int argc, char *argv[]) {
     addrlen = sizeof(address);
     puts("En attente de connexions ...");
 
-    while(1) {
+    while (1) {
         FD_ZERO(&readfds);
         FD_SET(master_socket, &readfds);
         max_sd = master_socket;
-        
-        for (i = 0; i < MAX_CLIENTS; i++) {
-            sd = client_socket[i];
-            if(sd > 0) FD_SET(sd, &readfds);
-            if(sd > max_sd) max_sd = sd;
+
+        struct Joueur *joueur_actuel = premier_joueur;
+        while (joueur_actuel != NULL) {
+            FD_SET(joueur_actuel->socket_id, &readfds);
+            if (joueur_actuel->socket_id > max_sd) {
+                max_sd = joueur_actuel->socket_id;
+            }
+            joueur_actuel = joueur_actuel->suivant;
         }
 
         activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
@@ -75,37 +89,30 @@ int main(int argc, char *argv[]) {
         }
 
         if (FD_ISSET(master_socket, &readfds)) {
-            if ((new_socket = accept(master_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
+            if ((new_socket = accept(master_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
                 error("accepter");
             }
 
             printf("Nouvelle connexion, le socket fd est %d, l'ip est: %s, le port: %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
-            for (i = 0; i < MAX_CLIENTS; i++) {
-                if (client_socket[i] == 0) {
-                    client_socket[i] = new_socket;
-                    printf("Ajout à la liste des sockets en tant que %d\n", i);
-                    break;
-                }
-            }
+            ajouter_joueur(new_socket);
         }
 
-        for (i = 0; i < MAX_CLIENTS; i++) {
-            sd = client_socket[i];
-
-            if (FD_ISSET(sd, &readfds)) {
-                if ((valread = read(sd, buffer, BUFFER_SIZE)) == 0) {
-                    getpeername(sd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-                    printf("Hôte déconnecté, ip %s, port %d \n", inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-                    close(sd);
-                    client_socket[i] = 0;
+        joueur_actuel = premier_joueur;
+        while (joueur_actuel != NULL) {
+            if (FD_ISSET(joueur_actuel->socket_id, &readfds)) {
+                if ((valread = read(joueur_actuel->socket_id, buffer, BUFFER_SIZE)) == 0) {
+                    printf("Déconnexion de Joueur : %s\n", joueur_actuel->nom_utilisateur);
+                    close(joueur_actuel->socket_id);
+                    // Supprimer le joueur de la liste des joueurs
+                    // (Non implémenté dans cet exemple)
                 } else {
                     // Traitement du message reçu
                     buffer[valread] = '\0';
-                    printf("Message du client %d: %s\n", i, buffer);
-                    // Ici, vous pouvez traiter le message comme vous le souhaitez, sans renvoyer de réponse
+                    printf("Message du joueur %s: %s\n", joueur_actuel->nom_utilisateur, buffer);
                 }
             }
+            joueur_actuel = joueur_actuel->suivant;
         }
     }
 
