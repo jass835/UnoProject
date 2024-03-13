@@ -40,9 +40,13 @@ void ajouter_joueur(int socket_id) {
     printf("Joueur ajouté : ID socket %d, Nom : %s\n", socket_id, nouveau_joueur->nom_utilisateur);
 }
 
+void changer_nom_joueur(struct Joueur *joueur, const char *nouveau_nom) {
+    strcpy(joueur->nom_utilisateur, nouveau_nom);
+}
+
 int main() {
     int master_socket, addrlen, new_socket, activity, valread;
-    int max_sd;
+    int max_sd, opt = 1;
     struct sockaddr_in address;
     char buffer[BUFFER_SIZE];
 
@@ -51,6 +55,15 @@ int main() {
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         error("socket a échoué");
     }
+
+    // Paramétrage du socket pour réutiliser l'adresse et le port
+    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
+        error("setsockopt SO_REUSEADDR");
+    }
+    // Décommentez la ligne suivante si votre système supporte SO_REUSEPORT
+    // if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&opt, sizeof(opt)) < 0) {
+    //     error("setsockopt SO_REUSEPORT");
+    // }
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -105,11 +118,18 @@ int main() {
                     printf("Déconnexion de Joueur : %s\n", joueur_actuel->nom_utilisateur);
                     close(joueur_actuel->socket_id);
                     // Supprimer le joueur de la liste des joueurs
-                    // (Non implémenté dans cet exemple)
+                    // (Implémenter la logique ici)
                 } else {
                     // Traitement du message reçu
                     buffer[valread] = '\0';
                     printf("Message du joueur %s: %s\n", joueur_actuel->nom_utilisateur, buffer);
+                    
+                    // Analyser le message pour voir s'il contient "/login "
+                    if (strncmp(buffer, "/login ", 7) == 0) {
+                        char *nouveau_nom = buffer + 7; // Récupérer le nom après "/login "
+                        changer_nom_joueur(joueur_actuel, nouveau_nom);
+                        printf("Nom du joueur %d changé en : %s\n", joueur_actuel->socket_id, joueur_actuel->nom_utilisateur);
+                    }
                 }
             }
             joueur_actuel = joueur_actuel->suivant;
