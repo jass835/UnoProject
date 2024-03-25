@@ -1,9 +1,10 @@
+// serveur.c
+#include "moteur.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -13,40 +14,12 @@
 #define MAX_CLIENTS 30
 #define BUFFER_SIZE 1024
 
-struct Joueur {
-    int socket_id;
-    char nom_utilisateur[20];
-    struct Joueur *suivant;
-};
-
 struct Joueur *premier_joueur = NULL;
 int nombre_joueurs = 0;
 
-void error(const char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-void ajouter_joueur(int socket_id) {
-    struct Joueur *nouveau_joueur = (struct Joueur *)malloc(sizeof(struct Joueur));
-    if (nouveau_joueur == NULL) {
-        error("Erreur lors de l'allocation de mémoire pour le joueur");
-    }
-    nouveau_joueur->socket_id = socket_id;
-    sprintf(nouveau_joueur->nom_utilisateur, "Joueur %d", nombre_joueurs + 1);
-    nouveau_joueur->suivant = premier_joueur;
-    premier_joueur = nouveau_joueur;
-    nombre_joueurs++;
-    printf("Joueur ajouté : ID socket %d, Nom : %s\n", socket_id, nouveau_joueur->nom_utilisateur);
-}
-
-void changer_nom_joueur(struct Joueur *joueur, const char *nouveau_nom) {
-    strcpy(joueur->nom_utilisateur, nouveau_nom);
-}
-
 int main() {
     int master_socket, addrlen, new_socket, activity, valread;
-    int max_sd, opt = 1;
+    int max_sd;
     struct sockaddr_in address;
     char buffer[BUFFER_SIZE];
 
@@ -55,15 +28,6 @@ int main() {
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         error("socket a échoué");
     }
-
-    // Paramétrage du socket pour réutiliser l'adresse et le port
-    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
-        error("setsockopt SO_REUSEADDR");
-    }
-    // Décommentez la ligne suivante si votre système supporte SO_REUSEPORT
-    // if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&opt, sizeof(opt)) < 0) {
-    //     error("setsockopt SO_REUSEPORT");
-    // }
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -108,7 +72,7 @@ int main() {
 
             printf("Nouvelle connexion, le socket fd est %d, l'ip est: %s, le port: %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 
-            ajouter_joueur(new_socket);
+            ajouter_joueur(&premier_joueur, new_socket, &nombre_joueurs);
         }
 
         joueur_actuel = premier_joueur;
@@ -118,18 +82,11 @@ int main() {
                     printf("Déconnexion de Joueur : %s\n", joueur_actuel->nom_utilisateur);
                     close(joueur_actuel->socket_id);
                     // Supprimer le joueur de la liste des joueurs
-                    // (Implémenter la logique ici)
+                    // (Non implémenté dans cet exemple)
                 } else {
                     // Traitement du message reçu
                     buffer[valread] = '\0';
                     printf("Message du joueur %s: %s\n", joueur_actuel->nom_utilisateur, buffer);
-                    
-                    // Analyser le message pour voir s'il contient "/login "
-                    if (strncmp(buffer, "/login ", 7) == 0) {
-                        char *nouveau_nom = buffer + 7; // Récupérer le nom après "/login "
-                        changer_nom_joueur(joueur_actuel, nouveau_nom);
-                        printf("Nom du joueur %d changé en : %s\n", joueur_actuel->socket_id, joueur_actuel->nom_utilisateur);
-                    }
                 }
             }
             joueur_actuel = joueur_actuel->suivant;
