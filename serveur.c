@@ -1,4 +1,3 @@
-// serveur.c
 #include "moteur.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +25,8 @@ int main() {
     fd_set readfds;
 
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        error("socket a échoué");
+        perror("socket a échoué");
+        exit(EXIT_FAILURE);
     }
 
     address.sin_family = AF_INET;
@@ -34,16 +34,26 @@ int main() {
     address.sin_port = htons(PORT);
 
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        error("liaison a échoué");
+        perror("liaison a échoué");
+        exit(EXIT_FAILURE);
     }
     printf("Écouteur sur le port %d \n", PORT);
 
     if (listen(master_socket, 3) < 0) {
-        error("écoute");
+        perror("écoute");
+        exit(EXIT_FAILURE);
     }
 
     addrlen = sizeof(address);
     puts("En attente de connexions ...");
+
+    // Initialiser le paquet de cartes Uno
+    Carte paquet[TAILLE_PAQUET];
+    int taille_paquet = TAILLE_PAQUET; // Taille du paquet
+    initialiserPaquet(paquet, taille_paquet);
+
+    // Afficher le paquet de cartes Uno
+    afficherPaquet(paquet, taille_paquet);
 
     while (1) {
         FD_ZERO(&readfds);
@@ -62,12 +72,14 @@ int main() {
         activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
 
         if ((activity < 0) && (errno != EINTR)) {
-            printf("erreur de sélection");
+            perror("erreur de sélection");
+            exit(EXIT_FAILURE);
         }
 
         if (FD_ISSET(master_socket, &readfds)) {
             if ((new_socket = accept(master_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
-                error("accepter");
+                perror("accepter");
+                exit(EXIT_FAILURE);
             }
 
             printf("Nouvelle connexion, le socket fd est %d, l'ip est: %s, le port: %d\n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
