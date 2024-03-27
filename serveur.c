@@ -14,11 +14,7 @@
 #define DEFAULT_PLAYERS_MINI 3
 #define BUFFER_SIZE 1024
 
-bool partie_en_cours = false;
-struct Joueur *premier_joueur = NULL;
-int nombre_joueurs = 0;
 
-void demarrer_partie(struct Joueur *premier_joueur);
 
 int main(int argc, char *argv[]) {
     int opt;
@@ -69,10 +65,6 @@ int main(int argc, char *argv[]) {
     addrlen = sizeof(address);
     puts("En attente de connexions ...");
 
-    /*affichePaquet(Paquet, TAILLE_PAQUET);
-    melanger_paquet(Paquet, TAILLE_PAQUET);
-    affichePaquet(Paquet, TAILLE_PAQUET);*/
-
     while (1) {
         FD_ZERO(&readfds);
         FD_SET(master_socket, &readfds);
@@ -121,12 +113,18 @@ int main(int argc, char *argv[]) {
                     size_t length = strcspn(buffer, "\n");
                     buffer[length] = '\0';
 
+                    // Comparer avec "/login"
+                    if (strncmp(buffer, "/login", 6) == 0) {
+                        // Extraire le nom d'utilisateur de la commande
+                        char *username = buffer + 7; // Ignorer "/login " dans le buffer
+                        // Traiter la commande /login pour le joueur actuel
+                        process_login_command(joueur_actuel, username);
+                    }
+
                     // Comparer avec "/play"
                     if (strcmp(buffer, "/play") == 0 && joueur_actuel == premier_joueur && nombre_joueurs >= players_mini && !partie_en_cours) {
                         demarrer_partie(premier_joueur);
                     }
-
-
                 }
             }
             joueur_actuel = joueur_actuel->suivant;
@@ -136,16 +134,3 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void demarrer_partie(struct Joueur *premier_joueur) {
-    printf("Démarrage de la partie.\n");
-    // Distribuer les cartes aux joueurs
-    distribuer_cartes(premier_joueur, Paquet, nombre_joueurs);
-    // Envoyer les cartes à chaque joueur
-    struct Joueur *joueur_actuel = premier_joueur;
-    while (joueur_actuel != NULL) {
-        envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
-        joueur_actuel = joueur_actuel->suivant;
-    }
-    // Marquer la partie comme en cours
-    partie_en_cours = true;
-}
