@@ -68,6 +68,8 @@ int main(int argc, char *argv[]) {
     puts("En attente de connexions ...");
 
     affichePaquet(Paquet, TAILLE_PAQUET);
+    melanger_paquet(Paquet, TAILLE_PAQUET);
+    affichePaquet(Paquet, TAILLE_PAQUET);
 
     while (1) {
         FD_ZERO(&readfds);
