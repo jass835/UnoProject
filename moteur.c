@@ -4,6 +4,7 @@
 #include <string.h>
 #include "moteur.h"
 #include <stdio.h>
+#include <time.h>
 
 const char *Paquet[] = {
     "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J+", "J+", "J%", "J%", "J~","J~",
@@ -69,6 +70,34 @@ void affichePaquet(const char *paquet[], int taille) {
             printf("\n");
     }
     printf("\n");
+}
+
+void melanger_paquet(const char *paquet[], int taille) {
+    srand(time(NULL)); // Initialisation du générateur de nombres aléatoires
+    for (int i = 0; i < taille - 1; ++i) {
+        int j = i + rand() % (taille - i); // Génère un indice aléatoire
+        // Échange de cartes entre l'élément courant et l'élément d'indice aléatoire
+        const char *temp = paquet[i];
+        paquet[i] = paquet[j];
+        paquet[j] = temp;
+    }
+}
+
+void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int nombre_joueurs) {
+    struct Joueur *joueur_actuel = premier_joueur;
+    int cartes_distribuees = 0;
+    int index_paquet = 0;
+
+    while (joueur_actuel != NULL && cartes_distribuees < nombre_joueurs * 4) {
+        for (int i = 0; i < 4; ++i) {
+            if (paquet[index_paquet] != NULL) {
+                strcpy(joueur_actuel->cartes[i], paquet[index_paquet]);
+                index_paquet++;
+                cartes_distribuees++;
+            }
+        }
+        joueur_actuel = joueur_actuel->suivant;
+    }
 }
 
 void error(const char *msg) {
