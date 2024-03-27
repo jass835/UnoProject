@@ -5,13 +5,14 @@
 #include "moteur.h"
 #include <stdio.h>
 
-const char *Paquet[TAILLE_PAQUET] = {
-    "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B%", "B%", "B+", "B+", "B~", "B~",
-    "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R%", "R%", "R+", "R+", "R~", "R~",
-    "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J%", "J%", "J+", "J+", "J~", "J~",
-    "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V%", "V%", "V+", "V+", "V~", "V~",
-    "K+", "K+", "K+", "K+", "KJ", "KJ", "KJ", "KJ"
+const char *Paquet[] = {
+    "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J+", "J+", "J%", "J%", "J~","J~",
+    "B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B+", "B+", "B%", "B%", "B~","B~",
+    "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V+", "V+", "V%", "V%", "V~","V~",
+    "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R+", "R+", "R%", "R%", "R~","R~",
+      "K+", "K+", "KJ", "KJ",  "K+", "K+", "KJ", "KJ"
 };
+
 
 void ajouter_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_joueurs) {
     struct Joueur *nouveau_joueur = (struct Joueur *)malloc(sizeof(struct Joueur));

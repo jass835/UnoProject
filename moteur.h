@@ -3,7 +3,7 @@
 
 #include <sys/socket.h>
 
-#define TAILLE_PAQUET 68  // Nombre total d'éléments dans le paquet
+#define TAILLE_PAQUET 72  // Nombre total d'éléments dans le paquet
 
 extern const char *Paquet[TAILLE_PAQUET];
 
