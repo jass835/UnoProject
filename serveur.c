@@ -122,10 +122,12 @@ int main(int argc, char *argv[]) {
                     }
 
                     // Comparer avec "/play"
-                    if (strcmp(buffer, "/play") == 0 && joueur_actuel == premier_joueur && nombre_joueurs >= players_mini && !partie_en_cours) {
+                    // Comparer avec "/play"
+                    if (strcmp(buffer, "/play") == 0 && joueur_actuel == joueur_autorise && nombre_joueurs >= players_mini && !partie_en_cours) {
                         demarrer_partie(premier_joueur);
                     }
-                }
+
+                 }
             }
             joueur_actuel = joueur_actuel->suivant;
         }

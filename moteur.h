@@ -19,6 +19,8 @@
 #define MIN_USERNAME_LENGTH 3
 
 extern const char *Paquet[TAILLE_PAQUET];
+extern struct Joueur *joueur_autorise;
+
 
 struct Joueur {
     int socket_id;

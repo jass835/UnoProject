@@ -11,6 +11,8 @@
 bool partie_en_cours = false;
 struct Joueur *premier_joueur = NULL;
 int nombre_joueurs = 0;
+struct Joueur *joueur_autorise = NULL;
+
 
 const char *Paquet[] = {
     "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J+", "J+", "J%", "J%", "J~", "J~",
@@ -32,7 +34,14 @@ void ajouter_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_j
     *premier_joueur = nouveau_joueur;
     (*nombre_joueurs)++;
     printf("Joueur ajouté : ID socket %d, Nom : %s\n", socket_id, nouveau_joueur->nom_utilisateur);
+
+    // Si c'est le premier joueur connecté, définissez-le comme joueur autorisé à lancer la partie
+    if (*nombre_joueurs == 1)
+    {
+        joueur_autorise = nouveau_joueur;
+    }
 }
+
 
 void supprimer_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_joueurs)
 {
