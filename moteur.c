@@ -13,7 +13,6 @@ struct Joueur *premier_joueur = NULL;
 int nombre_joueurs = 0;
 struct Joueur *joueur_autorise = NULL;
 
-
 const char *Paquet[] = {
     "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J+", "J+", "J%", "J%", "J~", "J~",
     "B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B+", "B+", "B%", "B%", "B~", "B~",
@@ -41,7 +40,6 @@ void ajouter_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_j
         joueur_autorise = nouveau_joueur;
     }
 }
-
 
 void supprimer_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_joueurs)
 {
@@ -106,11 +104,16 @@ void melanger_paquet(const char *paquet[], int taille)
     }
 }
 
-void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int nombre_joueurs)
+void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int nombre_joueurs, bool melanger)
 {
+    if (melanger)
+    {
+        melanger_paquet(paquet, TAILLE_PAQUET);
+    }
+
     struct Joueur *joueur_actuel = premier_joueur;
     int cartes_distribuees = 0;
-    int index_paquet = 0;
+    int index_paquet = 0; // Assurez-vous que la variable est déclarée ici
 
     while (joueur_actuel != NULL && cartes_distribuees < nombre_joueurs * TAILLE_MAIN)
     {
@@ -125,6 +128,22 @@ void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int 
         }
         joueur_actuel = joueur_actuel->suivant;
     }
+}
+
+void demarrer_partie(struct Joueur *premier_joueur)
+{
+    printf("Démarrage de la partie.\n");
+    // Distribuer les cartes aux joueurs en mélangeant le paquet
+    distribuer_cartes(premier_joueur, Paquet, nombre_joueurs, true);
+    // Envoyer les cartes à chaque joueur
+    struct Joueur *joueur_actuel = premier_joueur;
+    while (joueur_actuel != NULL)
+    {
+        envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
+        joueur_actuel = joueur_actuel->suivant;
+    }
+    // Marquer la partie comme en cours
+    partie_en_cours = true;
 }
 
 void error(const char *msg)
@@ -148,23 +167,6 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
         perror("Erreur lors de l'envoi des cartes du joueur");
     }
 }
-
-void demarrer_partie(struct Joueur *premier_joueur)
-{
-    printf("Démarrage de la partie.\n");
-    // Distribuer les cartes aux joueurs
-    distribuer_cartes(premier_joueur, Paquet, nombre_joueurs);
-    // Envoyer les cartes à chaque joueur
-    struct Joueur *joueur_actuel = premier_joueur;
-    while (joueur_actuel != NULL)
-    {
-        envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
-        joueur_actuel = joueur_actuel->suivant;
-    }
-    // Marquer la partie comme en cours
-    partie_en_cours = true;
-}
-
 // Fonction pour traiter la commande /login
 void process_login_command(struct Joueur *joueur, const char *username)
 {
