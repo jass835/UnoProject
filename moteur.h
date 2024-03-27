@@ -3,11 +3,9 @@
 
 #include <sys/socket.h>
 
-#define TAILLE_PAQUET 108
+#define TAILLE_PAQUET 68  // Nombre total d'éléments dans le paquet
 
-typedef struct Carte {
-    char valeur[3]; // Modifier pour stocker directement "B1", "R2", etc.
-} Carte;
+extern const char *Paquet[TAILLE_PAQUET];
 
 struct Joueur {
     int socket_id;
@@ -16,8 +14,8 @@ struct Joueur {
 };
 
 void ajouter_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_joueurs);
-void initialiserPaquet(Carte paquet[], int taille);
-void afficherPaquet(const Carte paquet[], int taille);
+void supprimer_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre_joueurs);
 void error(const char *msg);
+void affichePaquet(const char *paquet[], int taille);
 
 #endif

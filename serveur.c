@@ -47,13 +47,7 @@ int main() {
     addrlen = sizeof(address);
     puts("En attente de connexions ...");
 
-    // Initialiser le paquet de cartes Uno
-    Carte paquet[TAILLE_PAQUET];
-    int taille_paquet = TAILLE_PAQUET; // Taille du paquet
-    initialiserPaquet(paquet, taille_paquet);
-
-    // Afficher le paquet de cartes Uno
-    afficherPaquet(paquet, taille_paquet);
+    affichePaquet(Paquet, TAILLE_PAQUET);
 
     while (1) {
         FD_ZERO(&readfds);
@@ -93,8 +87,7 @@ int main() {
                 if ((valread = read(joueur_actuel->socket_id, buffer, BUFFER_SIZE)) == 0) {
                     printf("Déconnexion de Joueur : %s\n", joueur_actuel->nom_utilisateur);
                     close(joueur_actuel->socket_id);
-                    // Supprimer le joueur de la liste des joueurs
-                    // (Non implémenté dans cet exemple)
+                    supprimer_joueur(&premier_joueur, joueur_actuel->socket_id, &nombre_joueurs);
                 } else {
                     // Traitement du message reçu
                     buffer[valread] = '\0';
