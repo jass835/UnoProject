@@ -8,15 +8,35 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <signal.h>
+#include <getopt.h>
 
+#define DEFAULT_PORT 5000
+#define DEFAULT_PLAYERS_MINI 3
 #define PORT 5000
 #define MAX_CLIENTS 30
 #define BUFFER_SIZE 1024
-
 struct Joueur *premier_joueur = NULL;
 int nombre_joueurs = 0;
 
-int main() {
+int main(int argc, char *argv[]) {
+    int opt;
+    int port = DEFAULT_PORT;
+    int players_mini = DEFAULT_PLAYERS_MINI;
+
+    while ((opt = getopt(argc, argv, "p:m:")) != -1) {
+        switch (opt) {
+            case 'p':
+                port = atoi(optarg);
+                break;
+            case 'm':
+                players_mini = atoi(optarg);
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-p PORT] [-m PLAYERS_MINI]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
     int master_socket, addrlen, new_socket, activity, valread;
     int max_sd;
     struct sockaddr_in address;
@@ -31,15 +51,15 @@ int main() {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    address.sin_port = htons(port);
 
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("liaison a échoué");
         exit(EXIT_FAILURE);
     }
-    printf("Écouteur sur le port %d \n", PORT);
+    printf("Écouteur sur le port %d \n", port);
 
-    if (listen(master_socket, 3) < 0) {
+    if (listen(master_socket, players_mini) < 0) {
         perror("écoute");
         exit(EXIT_FAILURE);
     }
