@@ -5,6 +5,8 @@
 #include "moteur.h"
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
+#define BUFFER_SIZE 1024
 
 const char *Paquet[] = {
     "J0", "J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9", "J+", "J+", "J%", "J%", "J~","J~",
@@ -88,8 +90,8 @@ void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int 
     int cartes_distribuees = 0;
     int index_paquet = 0;
 
-    while (joueur_actuel != NULL && cartes_distribuees < nombre_joueurs * 4) {
-        for (int i = 0; i < 4; ++i) {
+    while (joueur_actuel != NULL && cartes_distribuees < nombre_joueurs * TAILLE_MAIN) {
+        for (int i = 0; i < TAILLE_MAIN; ++i) {
             if (paquet[index_paquet] != NULL) {
                 strcpy(joueur_actuel->cartes[i], paquet[index_paquet]);
                 index_paquet++;
@@ -103,4 +105,18 @@ void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int 
 void error(const char *msg) {
     perror(msg);
     exit(1);
+}
+void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
+ {
+    char message[BUFFER_SIZE] = "";
+    for (int i = 0; i < taille_main; i++) {
+        strcat(message, cartes[i]);
+        strcat(message, ",");
+    }
+    // Supprimer la virgule finale
+    message[strlen(message) - 1] = '\0';
+
+    if (write(socket_id, message, strlen(message)) < 0) {
+        perror("Erreur lors de l'envoi des cartes du joueur");
+    }
 }
