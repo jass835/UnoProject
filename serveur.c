@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
     int opt;
     int port = DEFAULT_PORT;
     int players_mini = DEFAULT_PLAYERS_MINI;
+    bool play_attempted = false; // Variable pour suivre si la commande /play a été tentée
+    bool players_minimum_reached = false; // Variable pour suivre si le nombre minimum de joueurs a été atteint
 
     while ((opt = getopt(argc, argv, "p:m:")) != -1)
     {
@@ -115,7 +117,6 @@ int main(int argc, char *argv[])
 
             // Distribuer les cartes au nouveau joueur
             distribuer_cartes(premier_joueur, Paquet, nombre_joueurs, true);
-            
         }
 
         joueur_actuel = premier_joueur;
@@ -151,9 +152,51 @@ int main(int argc, char *argv[])
                         }
 
                         // Comparer avec "/play"
-                        if (strcmp(buffer, "/play") == 0 && nombre_joueurs >= players_mini && !partie_en_cours)
+                        if (strncmp(buffer, "/play", 5) == 0)
                         {
-                            demarrer_partie(premier_joueur);
+                            // Si la commande /play est tentée et le nombre minimum de joueurs n'a pas été atteint
+                            if (!players_minimum_reached && !play_attempted && nombre_joueurs < players_mini)
+                            {
+                                char error_message[50];
+                                sprintf(error_message, "20 Waiting for at least %d more user(s)\n", players_mini - nombre_joueurs);
+                                write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                            }
+                            else // Si la condition n'est pas remplie ou ce n'est pas la première tentative, traiter normalement
+                            {
+                                // Extraire la carte du jeu spécifiée dans la commande
+                                const char *carte_commande = buffer + 6; // Ignorer "/play " dans le buffer
+
+                                // Trouver l'indice de la carte dans la main du joueur
+                                int indice_carte = -1;
+                                for (int i = 0; i < TAILLE_MAIN; i++)
+                                {
+                                    if (strcmp(joueur_actuel->cartes[i], carte_commande) == 0)
+                                    {
+                                        indice_carte = i;
+                                        break;
+                                    }
+                                }
+
+                                // Si la carte spécifiée est trouvée dans la main du joueur
+                                if (indice_carte != -1)
+                                {
+                                    // Retirer la carte de la main du joueur
+                                    for (int i = indice_carte; i < TAILLE_MAIN - 1; i++)
+                                    {
+                                        strcpy(joueur_actuel->cartes[i], joueur_actuel->cartes[i + 1]);
+                                    }
+                                    strcpy(joueur_actuel->cartes[TAILLE_MAIN - 1], "");
+                                }
+                                else
+                                {
+                                    // Envoyer un message d'erreur si la carte spécifiée n'est pas dans la main du joueur
+                                    char error_message[] = "13 Not your card\n";
+                                    write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                }
+                            }
+
+                            // Marquer que la commande /play a été tentée
+                            play_attempted = true;
                         }
 
                         // Passer au joueur suivant comme joueur autorisé
@@ -183,6 +226,12 @@ int main(int argc, char *argv[])
                         {
                             // Appeler la fonction envoyer_main_joueur avec les informations appropriées
                             envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
+                        }
+
+                        // Vérifier si le nombre minimum de joueurs est atteint
+                        if (nombre_joueurs >= players_mini)
+                        {
+                            players_minimum_reached = true;
                         }
                     }
                     else
