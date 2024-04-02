@@ -144,6 +144,33 @@ int main(int argc, char *argv[])
 
                 else
                 {
+                     if (strncmp(buffer, "/players", 8) == 0)
+                        {
+                            // Construire la liste des joueurs connectés
+                            char player_list[BUFFER_SIZE];
+                            memset(player_list, 0, BUFFER_SIZE);
+                            strcat(player_list, "Liste des joueurs connectés :\n");
+                            struct Joueur *joueur = premier_joueur;
+                            while (joueur != NULL)
+                            {
+                                strcat(player_list, joueur->nom_utilisateur);
+                                strcat(player_list, "\n");
+                                joueur = joueur->suivant;
+                            }
+                            // Envoyer la liste des joueurs au joueur qui a demandé
+                            write(joueur_actuel->socket_id, player_list, strlen(player_list));
+                        }
+                        if (strncmp(buffer, "/hand", 5) == 0)
+                        {
+                            // Appeler la fonction envoyer_main_joueur avec les informations appropriées
+                            envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
+                        }
+
+                        // Vérifier si le nombre minimum de joueurs est atteint
+                        if (nombre_joueurs >= players_mini)
+                        {
+                            players_minimum_reached = true;
+                        }
                     if (joueur_actuel == joueur_autorise)
                     { // Vérifier si c'est le tour du joueur autorisé
                         // Traitement du message reçu
@@ -198,6 +225,8 @@ int main(int argc, char *argv[])
                                         strcpy(joueur_actuel->cartes[i], joueur_actuel->cartes[i + 1]);
                                     }
                                     strcpy(joueur_actuel->cartes[TAILLE_MAIN - 1], "");
+                                    // Marquer que la commande /play a été tentée
+                                    play_attempted = true;
                                 }
                                 else
                                 {
@@ -207,8 +236,7 @@ int main(int argc, char *argv[])
                                 }
                             }
 
-                            // Marquer que la commande /play a été tentée
-                            play_attempted = true;
+                           
                         }
 
                         // Passer au joueur suivant comme joueur autorisé
@@ -216,28 +244,6 @@ int main(int argc, char *argv[])
                         if (joueur_autorise == NULL)
                         {
                             joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
-                        }
-
-                        if (strncmp(buffer, "/players", 8) == 0)
-                        {
-                            // Construire la liste des joueurs connectés
-                            char player_list[BUFFER_SIZE];
-                            memset(player_list, 0, BUFFER_SIZE);
-                            strcat(player_list, "Liste des joueurs connectés :\n");
-                            struct Joueur *joueur = premier_joueur;
-                            while (joueur != NULL)
-                            {
-                                strcat(player_list, joueur->nom_utilisateur);
-                                strcat(player_list, "\n");
-                                joueur = joueur->suivant;
-                            }
-                            // Envoyer la liste des joueurs au joueur qui a demandé
-                            write(joueur_actuel->socket_id, player_list, strlen(player_list));
-                        }
-                        if (strncmp(buffer, "/hand", 5) == 0)
-                        {
-                            // Appeler la fonction envoyer_main_joueur avec les informations appropriées
-                            envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
                         }
 
                         // Vérifier si le nombre minimum de joueurs est atteint
