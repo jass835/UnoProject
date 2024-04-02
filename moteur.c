@@ -104,29 +104,31 @@ void melanger_paquet(const char *paquet[], int taille)
     }
 }
 
-void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int nombre_joueurs, bool melanger)
+void distribuer_cartes(struct Joueur *joueur, const char *paquet[], bool melanger)
 {
     if (melanger)
     {
         melanger_paquet(paquet, TAILLE_PAQUET);
     }
 
-    struct Joueur *joueur_actuel = premier_joueur;
+    int index_paquet = 0;
     int cartes_distribuees = 0;
-    int index_paquet = 0; // Assurez-vous que la variable est déclarée ici
 
-    while (joueur_actuel != NULL && cartes_distribuees < nombre_joueurs * TAILLE_MAIN)
+    // Distribuer les cartes au joueur spécifié
+    while (cartes_distribuees < TAILLE_MAIN)
     {
-        for (int i = 0; i < TAILLE_MAIN; ++i)
+        // S'assurer que la carte n'est pas déjà distribuée
+        if (paquet[index_paquet] != NULL)
         {
-            if (paquet[index_paquet] != NULL)
-            {
-                strcpy(joueur_actuel->cartes[i], paquet[index_paquet]);
-                index_paquet++;
-                cartes_distribuees++;
-            }
+            // Copier la carte dans la main du joueur
+            strcpy(joueur->cartes[cartes_distribuees], paquet[index_paquet]);
+            // Marquer la carte comme distribuée en supprimant la référence du paquet
+            paquet[index_paquet] = NULL;
+            // Passer à la carte suivante
+            cartes_distribuees++;
         }
-        joueur_actuel = joueur_actuel->suivant;
+        // Passer à la carte suivante dans le paquet
+        index_paquet++;
     }
 }
 
@@ -134,7 +136,7 @@ void demarrer_partie(struct Joueur *premier_joueur)
 {
     printf("Démarrage de la partie.\n");
     // Distribuer les cartes aux joueurs en mélangeant le paquet
-    distribuer_cartes(premier_joueur, Paquet, nombre_joueurs, true);
+
     // Envoyer les cartes à chaque joueur
     struct Joueur *joueur_actuel = premier_joueur;
     while (joueur_actuel != NULL)

@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     int opt;
     int port = DEFAULT_PORT;
     int players_mini = DEFAULT_PLAYERS_MINI;
-    bool play_attempted = false; // Variable pour suivre si la commande /play a été tentée
+    bool play_attempted = false;          // Variable pour suivre si la commande /play a été tentée
     bool players_minimum_reached = false; // Variable pour suivre si le nombre minimum de joueurs a été atteint
 
     while ((opt = getopt(argc, argv, "p:m:")) != -1)
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
             }
 
             // Distribuer les cartes au nouveau joueur
-            distribuer_cartes(premier_joueur, Paquet, nombre_joueurs, true);
+            distribuer_cartes(premier_joueur, Paquet, true); // Distribue uniquement au nouveau joueur
         }
 
         joueur_actuel = premier_joueur;
@@ -129,7 +129,19 @@ int main(int argc, char *argv[])
                     printf("Déconnexion de Joueur : %s\n", joueur_actuel->nom_utilisateur);
                     close(joueur_actuel->socket_id);
                     supprimer_joueur(&premier_joueur, joueur_actuel->socket_id, &nombre_joueurs);
+
+                    // Vérifier si le joueur déconnecté était celui autorisé à jouer
+                    if (joueur_actuel == joueur_autorise)
+                    {
+                        // Passer au joueur suivant comme joueur autorisé
+                        joueur_autorise = joueur_autorise->suivant;
+                        if (joueur_autorise == NULL)
+                        {
+                            joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                        }
+                    }
                 }
+
                 else
                 {
                     if (joueur_actuel == joueur_autorise)

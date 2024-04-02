@@ -34,7 +34,7 @@ void supprimer_joueur(struct Joueur **premier_joueur, int socket_id, int *nombre
 void error(const char *msg);
 void affichePaquet(const char *paquet[], int taille);
 void melanger_paquet(const char *paquet[], int taille);
-void distribuer_cartes(struct Joueur *premier_joueur, const char *paquet[], int nombre_joueurs, bool melanger);
+void distribuer_cartes(struct Joueur *joueur, const char *paquet[], bool melanger);
 void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main);
 void demarrer_partie(struct Joueur *premier_joueur);
 void process_login_command(struct Joueur *joueur, const char *username);
