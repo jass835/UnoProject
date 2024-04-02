@@ -112,6 +112,10 @@ int main(int argc, char *argv[])
             {
                 joueur_autorise = premier_joueur; // Définir le premier joueur comme joueur autorisé
             }
+
+            // Distribuer les cartes au nouveau joueur
+            distribuer_cartes(premier_joueur, Paquet, nombre_joueurs, true);
+            
         }
 
         joueur_actuel = premier_joueur;
