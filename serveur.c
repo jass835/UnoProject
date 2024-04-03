@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
                                     write(joueur_actuel->socket_id, success_message, strlen(success_message));
                                 }
 
-                                else if (strcmp(buffer, "00 OK\n") == 0)
+                                /*else if (strcmp(buffer, "00 OK\n") == 0)
                                 {
                                     // Passer au joueur suivant comme joueur autorisé
                                     joueur_autorise = joueur_autorise->suivant;
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
                                     {
                                         joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
                                     }
-                                }
+                                }*/
                                 else
                                 {
                                     // Envoyer un message d'erreur si la carte spécifiée n'est pas dans la main du joueur
