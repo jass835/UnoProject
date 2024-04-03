@@ -179,7 +179,7 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
 void process_login_command(struct Joueur *joueur, const char *username)
 {
     // Vérifier la longueur du nom d'utilisateur
-    size_t username_length = strlen(username);
+    size_t username_length = strcspn(username,"\r\n");
     if (username_length < MIN_USERNAME_LENGTH || username_length > MAX_USERNAME_LENGTH)
     {
         // Envoyer un message d'erreur au joueur
@@ -201,8 +201,8 @@ void process_login_command(struct Joueur *joueur, const char *username)
     {
 
         // Mettre à jour le nom d'utilisateur du joueur
-        strncpy(joueur->nom_utilisateur, username, MAX_USERNAME_LENGTH);
-        joueur->nom_utilisateur[MAX_USERNAME_LENGTH] = '\0';
+        strncpy(joueur->nom_utilisateur, username, username_length);
+        joueur->nom_utilisateur[username_length] = '\0';
 
         // Envoyer un message de confirmation au joueur
         char success_message[] = "00 OK\n";
