@@ -167,23 +167,35 @@ int main(int argc, char *argv[])
                     }
                     else if (strncmp(buffer, "/players", 8) == 0)
                     {
-                        // Construire la liste des joueurs connectés
+                        // Construire la liste des joueurs connectés avec le symbole "#" devant le joueur actuellement autorisé
                         char player_list[BUFFER_SIZE];
                         memset(player_list, 0, BUFFER_SIZE);
-                        strcat(player_list, "Liste des joueurs connectés :\n");
                         struct Joueur *joueur = premier_joueur;
                         while (joueur != NULL)
                         {
+
+                            // Ajouter un "#" devant le joueur actuellement autorisé
+                            if (joueur == joueur_autorise)
+                            {
+                                strcat(player_list, "#");
+                            }
                             strcat(player_list, joueur->nom_utilisateur);
-                            strcat(player_list, "\n");
+                            strcat(player_list, ",");
                             joueur = joueur->suivant;
                         }
+                        // Supprimer la dernière virgule
+                        player_list[strlen(player_list) - 1] = '\0';
+
                         // Envoyer la liste des joueurs au joueur qui a demandé
                         write(joueur_actuel->socket_id, player_list, strlen(player_list));
 
+                        // Mise en forme
+                        char saut_ligne[] = "\n";
+                        write(joueur_actuel->socket_id, saut_ligne, strlen(saut_ligne));
+
                         // Envoyer un message de confirmation au joueur
                         char success_message[] = "00 OK\n";
-                        write(joueur->socket_id, success_message, strlen(success_message));
+                        write(joueur_actuel->socket_id, success_message, strlen(success_message));
                     }
 
                     else if (strncmp(buffer, "/hand", 5) == 0)
@@ -208,7 +220,7 @@ int main(int argc, char *argv[])
                         buffer[length] = '\0';
 
                         // Comparer avec "/play"
-                        if (strncmp(buffer, "/play", 5) == 0)
+                        if (strncmp(buffer, "/play ", 5) == 0)
                         {
                             // Si la commande /play est tentée et le nombre minimum de joueurs n'a pas été atteint
                             if (!players_minimum_reached && !play_attempted && nombre_joueurs < players_mini)
