@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
                         buffer[length] = '\0';
 
                         // Comparer avec "/play"
-                        if (strncmp(buffer, "/play ", 5) == 0)
+                        if (strncmp(buffer, "/play ", 6) == 0)
                         {
                             // Si la commande /play est tentée et le nombre minimum de joueurs n'a pas été atteint
                             if (!players_minimum_reached && !play_attempted && nombre_joueurs < players_mini)
