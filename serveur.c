@@ -256,30 +256,21 @@ int main(int argc, char *argv[])
                                     // Envoyer un message de confirmation au joueur
                                     char success_message[] = "00 OK\n";
                                     write(joueur_actuel->socket_id, success_message, strlen(success_message));
-                                }
 
-                                /*else if (strcmp(buffer, "00 OK\n") == 0)
-                                {
                                     // Passer au joueur suivant comme joueur autorisé
                                     joueur_autorise = joueur_autorise->suivant;
                                     if (joueur_autorise == NULL)
                                     {
                                         joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
                                     }
-                                }*/
+                                }
+
                                 else
                                 {
                                     // Envoyer un message d'erreur si la carte spécifiée n'est pas dans la main du joueur
                                     char error_message[] = "13 Not your card\n";
                                     write(joueur_actuel->socket_id, error_message, strlen(error_message));
                                 }
-                            }
-
-                            // Passer au joueur suivant comme joueur autorisé
-                            joueur_autorise = joueur_autorise->suivant;
-                            if (joueur_autorise == NULL)
-                            {
-                                joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
                             }
                         }
 
