@@ -39,24 +39,54 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("Please enter the message: ");
-    memset(buffer, 0, BUFFER_SIZE);
-    fgets(buffer, BUFFER_SIZE, stdin);
+    while (1) {
+        printf("Menu:\n");
+        printf("1. entrer votre login\n");
+        printf("2. voir joueurs connecter\n");
+        printf("3. voir votre main\n");
+        printf("4. jouer une carte \n");
+        printf("Entrer votre choix : ");
 
-    n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) {
-        perror("ERROR writing to socket");
-        exit(1);
+        int choice;
+        scanf("%d", &choice);
+        getchar(); // Consume newline character
+
+        switch (choice) {
+            case 1:
+                printf("Enter your username: ");
+                fgets(buffer, BUFFER_SIZE, stdin);
+                break;
+            case 2:
+                strcpy(buffer, "/players");
+                break;
+            case 3:
+                strcpy(buffer, "/hand");
+                break;
+            case 4:
+                printf("Enter the card you want to play: ");
+                fgets(buffer, BUFFER_SIZE, stdin);
+                break;
+            default:
+                printf("Invalid choice.\n");
+                continue;
+        }
+
+        n = write(sockfd, buffer, strlen(buffer));
+        if (n < 0) {
+            perror("ERROR writing to socket");
+            exit(1);
+        }
+
+        memset(buffer, 0, BUFFER_SIZE);
+        n = read(sockfd, buffer, BUFFER_SIZE-1);
+        if (n < 0) {
+             perror("ERROR reading from socket");
+             exit(1);
+        }
+
+        printf("Server response: %s\n", buffer);
     }
 
-    memset(buffer, 0, BUFFER_SIZE);
-    n = read(sockfd, buffer, BUFFER_SIZE-1);
-    if (n < 0) {
-         perror("ERROR reading from socket");
-         exit(1);
-    }
-
-    printf("%s\n",buffer);
     close(sockfd);
     return 0;
 }
