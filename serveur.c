@@ -192,16 +192,19 @@ int main(int argc, char *argv[])
                         // Mise en forme
                         char saut_ligne[] = "\n";
                         write(joueur_actuel->socket_id, saut_ligne, strlen(saut_ligne));
-
-                        // Envoyer un message de confirmation au joueur
-                        char success_message[] = "00 OK\n";
-                        write(joueur_actuel->socket_id, success_message, strlen(success_message));
                     }
 
                     else if (strncmp(buffer, "/hand", 5) == 0)
                     {
                         // Appeler la fonction envoyer_main_joueur avec les informations appropriées
                         envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
+                    }
+
+                    else if (strncmp(buffer, "/play ", 6) == 0 || joueur_actuel != joueur_autorise)
+                    {
+                        // Envoyer un message d'erreur au joueur
+                        char error_message[] = "11 Not your turn\n";
+                        write(joueur_actuel->socket_id, error_message, strlen(error_message));
                     }
 
                     // Vérifier si le nombre minimum de joueurs est atteint
@@ -291,12 +294,6 @@ int main(int argc, char *argv[])
                         {
                             players_minimum_reached = true;
                         }
-                    }
-                    else
-                    {
-                        // Envoyer un message d'erreur au joueur
-                        char error_message[] = "11 Not your turn\n";
-                        write(joueur_actuel->socket_id, error_message, strlen(error_message));
                     }
                 }
             }

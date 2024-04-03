@@ -173,9 +173,6 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
     char saut_ligne[] = "\n";
     write(socket_id, saut_ligne, strlen(saut_ligne));
 
-    // Envoyer un message de confirmation au joueur
-    char success_message[] = "00 OK\n";
-    write(socket_id, success_message, strlen(success_message));
 }
 
 // Fonction pour traiter la commande /login
