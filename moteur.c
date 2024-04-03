@@ -168,7 +168,16 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
     {
         perror("Erreur lors de l'envoi des cartes du joueur");
     }
+
+    // Mise en forme
+    char saut_ligne[] = "\n";
+    write(socket_id, saut_ligne, strlen(saut_ligne));
+
+    // Envoyer un message de confirmation au joueur
+    char success_message[] = "00 OK\n";
+    write(socket_id, success_message, strlen(success_message));
 }
+
 // Fonction pour traiter la commande /login
 void process_login_command(struct Joueur *joueur, const char *username)
 {
@@ -191,11 +200,15 @@ void process_login_command(struct Joueur *joueur, const char *username)
         return;
     }
 
-    // Mettre à jour le nom d'utilisateur du joueur
-    strncpy(joueur->nom_utilisateur, username, MAX_USERNAME_LENGTH);
-    joueur->nom_utilisateur[MAX_USERNAME_LENGTH] = '\0';
+    else
+    {
 
-    // Envoyer un message de confirmation au joueur
-    char success_message[] = "00 OK\n";
-    write(joueur->socket_id, success_message, strlen(success_message));
+        // Mettre à jour le nom d'utilisateur du joueur
+        strncpy(joueur->nom_utilisateur, username, MAX_USERNAME_LENGTH);
+        joueur->nom_utilisateur[MAX_USERNAME_LENGTH] = '\0';
+
+        // Envoyer un message de confirmation au joueur
+        char success_message[] = "00 OK\n";
+        write(joueur->socket_id, success_message, strlen(success_message));
+    }
 }

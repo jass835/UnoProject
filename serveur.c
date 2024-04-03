@@ -144,41 +144,45 @@ int main(int argc, char *argv[])
 
                 else
                 {
-                     // Comparer avec "/login"
-                        if (strncmp(buffer, "/login", 6) == 0)
+                    // Comparer avec "/login"
+                    if (strncmp(buffer, "/login", 6) == 0)
+                    {
+                        // Extraire le nom d'utilisateur de la commande
+                        char *username = buffer + 7; // Ignorer "/login " dans le buffer
+                        // Traiter la commande /login pour le joueur actuel
+                        process_login_command(joueur_actuel, username);
+                    }
+                    if (strncmp(buffer, "/players", 8) == 0)
+                    {
+                        // Construire la liste des joueurs connectés
+                        char player_list[BUFFER_SIZE];
+                        memset(player_list, 0, BUFFER_SIZE);
+                        strcat(player_list, "Liste des joueurs connectés :\n");
+                        struct Joueur *joueur = premier_joueur;
+                        while (joueur != NULL)
                         {
-                            // Extraire le nom d'utilisateur de la commande
-                            char *username = buffer + 7; // Ignorer "/login " dans le buffer
-                            // Traiter la commande /login pour le joueur actuel
-                            process_login_command(joueur_actuel, username);
+                            strcat(player_list, joueur->nom_utilisateur);
+                            strcat(player_list, "\n");
+                            joueur = joueur->suivant;
                         }
-                     if (strncmp(buffer, "/players", 8) == 0)
-                        {
-                            // Construire la liste des joueurs connectés
-                            char player_list[BUFFER_SIZE];
-                            memset(player_list, 0, BUFFER_SIZE);
-                            strcat(player_list, "Liste des joueurs connectés :\n");
-                            struct Joueur *joueur = premier_joueur;
-                            while (joueur != NULL)
-                            {
-                                strcat(player_list, joueur->nom_utilisateur);
-                                strcat(player_list, "\n");
-                                joueur = joueur->suivant;
-                            }
-                            // Envoyer la liste des joueurs au joueur qui a demandé
-                            write(joueur_actuel->socket_id, player_list, strlen(player_list));
-                        }
-                        if (strncmp(buffer, "/hand", 5) == 0)
-                        {
-                            // Appeler la fonction envoyer_main_joueur avec les informations appropriées
-                            envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
-                        }
+                        // Envoyer la liste des joueurs au joueur qui a demandé
+                        write(joueur_actuel->socket_id, player_list, strlen(player_list));
 
-                        // Vérifier si le nombre minimum de joueurs est atteint
-                        if (nombre_joueurs >= players_mini)
-                        {
-                            players_minimum_reached = true;
-                        }
+                        // Envoyer un message de confirmation au joueur
+                        char success_message[] = "00 OK\n";
+                        write(joueur->socket_id, success_message, strlen(success_message));
+                    }
+                    if (strncmp(buffer, "/hand", 5) == 0)
+                    {
+                        // Appeler la fonction envoyer_main_joueur avec les informations appropriées
+                        envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
+                    }
+
+                    // Vérifier si le nombre minimum de joueurs est atteint
+                    if (nombre_joueurs >= players_mini)
+                    {
+                        players_minimum_reached = true;
+                    }
                     if (joueur_actuel == joueur_autorise)
                     { // Vérifier si c'est le tour du joueur autorisé
                         // Traitement du message reçu
@@ -226,6 +230,10 @@ int main(int argc, char *argv[])
                                     strcpy(joueur_actuel->cartes[TAILLE_MAIN - 1], "");
                                     // Marquer que la commande /play a été tentée
                                     play_attempted = true;
+
+                                    // Envoyer un message de confirmation au joueur
+                                    char success_message[] = "00 OK\n";
+                                    write(joueur_actuel->socket_id, success_message, strlen(success_message));
                                 }
                                 else
                                 {
@@ -235,16 +243,13 @@ int main(int argc, char *argv[])
                                 }
                             }
 
-                        // Passer au joueur suivant comme joueur autorisé
-                        joueur_autorise = joueur_autorise->suivant;
-                        if (joueur_autorise == NULL)
-                        {
-                            joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                            // Passer au joueur suivant comme joueur autorisé
+                            joueur_autorise = joueur_autorise->suivant;
+                            if (joueur_autorise == NULL)
+                            {
+                                joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                            }
                         }
-   
-                        }
-
-                        
 
                         // Vérifier si le nombre minimum de joueurs est atteint
                         if (nombre_joueurs >= players_mini)
