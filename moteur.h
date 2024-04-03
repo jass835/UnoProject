@@ -38,6 +38,7 @@ void distribuer_cartes(struct Joueur *joueur, const char *paquet[], bool melange
 void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main);
 void demarrer_partie(struct Joueur *premier_joueur);
 void process_login_command(struct Joueur *joueur, const char *username);
+bool is_valid_command(const char *command);
 
 extern bool partie_en_cours;
 extern struct Joueur *premier_joueur;

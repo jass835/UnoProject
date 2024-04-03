@@ -144,15 +144,30 @@ int main(int argc, char *argv[])
 
                 else
                 {
+
+                    if (strncmp(buffer, "/", 1) != 0)
+                    {
+                        // Si le message ne commence pas par "/", envoyer "10 Bad Command" au joueur et passer au suivant
+                        char error_message[] = "10 Bad Command\n";
+                        write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                        continue;
+                    }
+                    // Vérifier si la commande est une commande client valide
+                    else if (!is_valid_command(buffer))
+                    {
+                        char error_message[] = "99 Unknown Command\n";
+                        write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                        continue;
+                    }
                     // Comparer avec "/login"
-                    if (strncmp(buffer, "/login", 6) == 0)
+                    else if (strncmp(buffer, "/login", 6) == 0)
                     {
                         // Extraire le nom d'utilisateur de la commande
                         char *username = buffer + 7; // Ignorer "/login " dans le buffer
                         // Traiter la commande /login pour le joueur actuel
                         process_login_command(joueur_actuel, username);
                     }
-                    if (strncmp(buffer, "/players", 8) == 0)
+                    else if (strncmp(buffer, "/players", 8) == 0)
                     {
                         // Construire la liste des joueurs connectés
                         char player_list[BUFFER_SIZE];
@@ -172,7 +187,8 @@ int main(int argc, char *argv[])
                         char success_message[] = "00 OK\n";
                         write(joueur->socket_id, success_message, strlen(success_message));
                     }
-                    if (strncmp(buffer, "/hand", 5) == 0)
+
+                    else if (strncmp(buffer, "/hand", 5) == 0)
                     {
                         // Appeler la fonction envoyer_main_joueur avec les informations appropriées
                         envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
@@ -203,6 +219,15 @@ int main(int argc, char *argv[])
                                 sprintf(error_message, "20 Waiting for at least %d more user(s)\n", players_mini - nombre_joueurs);
                                 write(joueur_actuel->socket_id, error_message, strlen(error_message));
                             }
+
+                            // Vérifier si le nombre de caractères est correct
+                            else if (strlen(buffer) != 8)
+                            {
+                                char error_message[] = "10 Bad Command\n";
+                                write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                continue; // Passer au joueur suivant
+                            }
+
                             else // Si la condition n'est pas remplie ou ce n'est pas la première tentative, traiter normalement
                             {
                                 // Extraire la carte du jeu spécifiée dans la commande

@@ -212,3 +212,18 @@ void process_login_command(struct Joueur *joueur, const char *username)
         write(joueur->socket_id, success_message, strlen(success_message));
     }
 }
+
+bool is_valid_command(const char *command) {
+    if (strncmp(command, "/login", 6) == 0 ||
+        strncmp(command, "/heap", 5) == 0 ||
+        strncmp(command, "/players", 8) == 0 ||
+        strncmp(command, "/hand", 5) == 0 ||
+        strncmp(command, "/pick", 5) == 0) {
+        return true;
+    }
+    // Vérifier si la commande commence par "/play " (avec un espace après "/play")
+    else if (strncmp(command, "/play ", 6) == 0 && strlen(command) >= 8) {
+        return true;
+    }
+    return false;
+}
