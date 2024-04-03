@@ -150,14 +150,12 @@ int main(int argc, char *argv[])
                         // Si le message ne commence pas par "/", envoyer "10 Bad Command" au joueur et passer au suivant
                         char error_message[] = "10 Bad Command\n";
                         write(joueur_actuel->socket_id, error_message, strlen(error_message));
-                        continue;
                     }
                     // Vérifier si la commande est une commande client valide
                     else if (!is_valid_command(buffer))
                     {
                         char error_message[] = "99 Unknown Command\n";
                         write(joueur_actuel->socket_id, error_message, strlen(error_message));
-                        continue;
                     }
                     // Comparer avec "/login"
                     else if (strncmp(buffer, "/login", 6) == 0)
@@ -225,7 +223,6 @@ int main(int argc, char *argv[])
                             {
                                 char error_message[] = "10 Bad Command\n";
                                 write(joueur_actuel->socket_id, error_message, strlen(error_message));
-                                continue; // Passer au joueur suivant
                             }
 
                             else // Si la condition n'est pas remplie ou ce n'est pas la première tentative, traiter normalement
@@ -259,6 +256,16 @@ int main(int argc, char *argv[])
                                     // Envoyer un message de confirmation au joueur
                                     char success_message[] = "00 OK\n";
                                     write(joueur_actuel->socket_id, success_message, strlen(success_message));
+                                }
+
+                                else if (strcmp(buffer, "00 OK\n") == 0)
+                                {
+                                    // Passer au joueur suivant comme joueur autorisé
+                                    joueur_autorise = joueur_autorise->suivant;
+                                    if (joueur_autorise == NULL)
+                                    {
+                                        joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                    }
                                 }
                                 else
                                 {
