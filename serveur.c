@@ -144,6 +144,14 @@ int main(int argc, char *argv[])
 
                 else
                 {
+                     // Comparer avec "/login"
+                        if (strncmp(buffer, "/login", 6) == 0)
+                        {
+                            // Extraire le nom d'utilisateur de la commande
+                            char *username = buffer + 7; // Ignorer "/login " dans le buffer
+                            // Traiter la commande /login pour le joueur actuel
+                            process_login_command(joueur_actuel, username);
+                        }
                      if (strncmp(buffer, "/players", 8) == 0)
                         {
                             // Construire la liste des joueurs connectés
@@ -180,15 +188,6 @@ int main(int argc, char *argv[])
                         // Supprimer les caractères de nouvelle ligne de la fin de la chaîne
                         size_t length = strcspn(buffer, "\n");
                         buffer[length] = '\0';
-
-                        // Comparer avec "/login"
-                        if (strncmp(buffer, "/login", 6) == 0)
-                        {
-                            // Extraire le nom d'utilisateur de la commande
-                            char *username = buffer + 7; // Ignorer "/login " dans le buffer
-                            // Traiter la commande /login pour le joueur actuel
-                            process_login_command(joueur_actuel, username);
-                        }
 
                         // Comparer avec "/play"
                         if (strncmp(buffer, "/play", 5) == 0)
@@ -236,15 +235,16 @@ int main(int argc, char *argv[])
                                 }
                             }
 
-                           
-                        }
-
                         // Passer au joueur suivant comme joueur autorisé
                         joueur_autorise = joueur_autorise->suivant;
                         if (joueur_autorise == NULL)
                         {
                             joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
                         }
+   
+                        }
+
+                        
 
                         // Vérifier si le nombre minimum de joueurs est atteint
                         if (nombre_joueurs >= players_mini)
