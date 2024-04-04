@@ -155,7 +155,6 @@ void distribuer_cartes_et_mettre_a_jour_paquet(struct Joueur *joueur, const char
     }
 }
 
-
 void demarrer_partie(struct Joueur *premier_joueur)
 {
     printf("Démarrage de la partie.\n");
@@ -183,10 +182,16 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
     for (int i = 0; i < taille_main; i++)
     {
         strcat(message, cartes[i]);
-        if (i < taille_main - 1) // Ajouter une virgule si ce n'est pas la dernière carte
+        if (i < taille_main - 1 && cartes[i + 1][0] != '\0') // Ajouter une virgule si ce n'est pas la dernière carte et si la prochaine carte existe
         {
             strcat(message, ",");
         }
+    }
+
+    // Supprimer la virgule finale si elle existe
+    if (taille_main > 0 && message[strlen(message) - 1] == ',')
+    {
+        message[strlen(message) - 1] = '\0';
     }
 
     if (write(socket_id, message, strlen(message)) < 0)
@@ -199,12 +204,11 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
     write(socket_id, saut_ligne, strlen(saut_ligne));
 }
 
-
 // Fonction pour traiter la commande /login
 void process_login_command(struct Joueur *joueur, const char *username)
 {
     // Vérifier la longueur du nom d'utilisateur
-    size_t username_length = strcspn(username,"\r\n");
+    size_t username_length = strcspn(username, "\r\n");
     if (username_length < MIN_USERNAME_LENGTH || username_length > MAX_USERNAME_LENGTH)
     {
         // Envoyer un message d'erreur au joueur
@@ -235,16 +239,19 @@ void process_login_command(struct Joueur *joueur, const char *username)
     }
 }
 
-bool is_valid_command(const char *command) {
+bool is_valid_command(const char *command)
+{
     if (strncmp(command, "/login", 6) == 0 ||
         strncmp(command, "/heap", 5) == 0 ||
         strncmp(command, "/players", 8) == 0 ||
         strncmp(command, "/hand", 5) == 0 ||
-        strncmp(command, "/pick", 5) == 0) {
+        strncmp(command, "/pick", 5) == 0)
+    {
         return true;
     }
     // Vérifier si la commande commence par "/play " (avec un espace après "/play")
-    else if (strncmp(command, "/play ", 6) == 0 && strlen(command) >= 8) {
+    else if (strncmp(command, "/play ", 6) == 0 && strlen(command) >= 8)
+    {
         return true;
     }
     return false;
