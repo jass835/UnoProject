@@ -48,11 +48,11 @@ int main(int argc, char *argv[])
     while (1)
     {
         printf("Menu:\n");
-        printf("1. entrer votre login\n");
-        printf("2. voir joueurs connecter\n");
-        printf("3. voir votre main\n");
-        printf("4. jouer une carte \n");
-        printf("Entrer votre choix : ");
+        printf("1. enter your login\n");
+        printf("2. see connected players\n");
+        printf("3. see your hand\n");
+        printf("4. play a card\n");
+        printf("Enter your choice: ");
 
         int choice;
         scanf("%d", &choice);
@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
             buffer[strcspn(buffer, "\n")] = '\0';
             // Concaténer la commande "/login " avant le nom d'utilisateur
             strncpy(buffer, "/login ", COMMAND_SIZE);
-            printf("%s",buffer);
-        break;
+            printf("%s", buffer);
+            break;
 
         case 2:
             strcpy(buffer, "/players");
@@ -77,11 +77,15 @@ int main(int argc, char *argv[])
             strcpy(buffer, "/hand");
             break;
         case 4:
-            printf("Enter the card you want to play: ");
+            printf("Enter your card: ");
             fgets(buffer + COMMAND_SIZE, BUFFER_SIZE - COMMAND_SIZE, stdin);
-            // Concatenate the command "/play " before the card
+            // Supprimer le caractère de nouvelle ligne de la chaîne lue
+            buffer[strcspn(buffer, "\n")] = '\0';
+            // Concaténer la commande "/play " avant la carte
             strncpy(buffer, "/play ", COMMAND_SIZE);
+            strcat(buffer, buffer + COMMAND_SIZE);
             break;
+
         default:
             printf("Invalid choice.\n");
             continue;
