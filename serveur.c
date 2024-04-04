@@ -202,11 +202,24 @@ int main(int argc, char *argv[])
                         envoyer_main_joueur(joueur_actuel->socket_id, joueur_actuel->cartes, TAILLE_MAIN);
                     }
 
-                    else if (strncmp(buffer, "/play ", 6) == 0 || joueur_actuel != joueur_autorise)
+                    else if (strncmp(buffer, "/play ", 6) == 0 && joueur_actuel != joueur_autorise)
                     {
                         // Envoyer un message d'erreur au joueur
                         char error_message[] = "11 Not your turn\n";
                         write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                    }
+
+                    else if (strncmp(buffer, "/pick", 5) == 0 && joueur_actuel != joueur_autorise) 
+                    {
+                        // Envoyer un message d'erreur si ce n'est pas le tour du joueur autorisé
+                        char error_message[] = "11 Not your turn\n";
+                        write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                    }
+                    // Ajout de la commande "/heap" pour voir la dernière carte jouée
+                    else if (strncmp(buffer, "/heap", 5) == 0)
+                    {
+                        // Envoyer la dernière carte jouée au joueur
+                        write(joueur_actuel->socket_id, derniere_carte, strlen(derniere_carte));
                     }
 
                     // Vérifier si le nombre minimum de joueurs est atteint
@@ -325,12 +338,6 @@ int main(int argc, char *argv[])
                                         joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
                                     }
                                 }
-                                else
-                                {
-                                    // Envoyer un message d'erreur si ce n'est pas le tour du joueur autorisé
-                                    char error_message[] = "11 Not your turn\n";
-                                    write(joueur_actuel->socket_id, error_message, strlen(error_message));
-                                }
                             }
                         }
 
@@ -340,12 +347,7 @@ int main(int argc, char *argv[])
                             players_minimum_reached = true;
                         }
                     }
-                    // Ajout de la commande "/heap" pour voir la dernière carte jouée
-                    else if (strncmp(buffer, "/heap", 5) == 0)
-                    {
-                        // Envoyer la dernière carte jouée au joueur
-                        write(joueur_actuel->socket_id, derniere_carte, strlen(derniere_carte));
-                    }
+                    
                 }
             }
             joueur_actuel = joueur_actuel->suivant;
