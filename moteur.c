@@ -104,7 +104,7 @@ void melanger_paquet(const char *paquet[], int taille)
     }
 }
 
-void distribuer_cartes(struct Joueur *joueur, const char *paquet[], bool melanger)
+void distribuer_cartes_et_mettre_a_jour_paquet(struct Joueur *joueur, const char *paquet[], bool melanger)
 {
     if (melanger)
     {
@@ -114,23 +114,47 @@ void distribuer_cartes(struct Joueur *joueur, const char *paquet[], bool melange
     int index_paquet = 0;
     int cartes_distribuees = 0;
 
-    // Distribuer les cartes au joueur spécifié
-    while (cartes_distribuees < TAILLE_MAIN)
+    // Distribuer les 7 premières cartes au joueur spécifié
+    while (cartes_distribuees < 7 && index_paquet < TAILLE_PAQUET)
     {
-        // S'assurer que la carte n'est pas déjà distribuée
-        if (paquet[index_paquet] != NULL)
+        // Trouver la première carte disponible dans le paquet
+        while (index_paquet < TAILLE_PAQUET && paquet[index_paquet] == NULL)
+        {
+            index_paquet++;
+        }
+
+        // S'assurer que le paquet n'est pas épuisé
+        if (index_paquet < TAILLE_PAQUET)
         {
             // Copier la carte dans la main du joueur
             strcpy(joueur->cartes[cartes_distribuees], paquet[index_paquet]);
-            // Marquer la carte comme distribuée en supprimant la référence du paquet
-            paquet[index_paquet] = NULL;
             // Passer à la carte suivante
             cartes_distribuees++;
+            // Marquer la carte comme distribuée en supprimant la référence du paquet
+            paquet[index_paquet] = NULL;
         }
         // Passer à la carte suivante dans le paquet
         index_paquet++;
     }
+
+    // Mettre à jour le paquet en supprimant les cartes distribuées
+    int index_destination = 0;
+    for (int index_source = 0; index_source < TAILLE_PAQUET; index_source++)
+    {
+        if (paquet[index_source] != NULL)
+        {
+            // Déplacer la carte non distribuée à sa nouvelle position dans le paquet
+            paquet[index_destination++] = paquet[index_source];
+        }
+    }
+
+    // Marquer la fin du paquet avec NULL pour indiquer les cartes non utilisées
+    for (int i = index_destination; i < TAILLE_PAQUET; i++)
+    {
+        paquet[i] = NULL;
+    }
 }
+
 
 void demarrer_partie(struct Joueur *premier_joueur)
 {
@@ -159,21 +183,22 @@ void envoyer_main_joueur(int socket_id, const char cartes[][3], int taille_main)
     for (int i = 0; i < taille_main; i++)
     {
         strcat(message, cartes[i]);
-        strcat(message, ",");
+        if (i < taille_main - 1) // Ajouter une virgule si ce n'est pas la dernière carte
+        {
+            strcat(message, ",");
+        }
     }
-    // Supprimer la virgule finale
-    message[strlen(message) - 1] = '\0';
 
     if (write(socket_id, message, strlen(message)) < 0)
     {
         perror("Erreur lors de l'envoi des cartes du joueur");
     }
 
-    // Mise en forme
+    // Ajouter un saut de ligne à la fin de l'envoi des cartes
     char saut_ligne[] = "\n";
     write(socket_id, saut_ligne, strlen(saut_ligne));
-
 }
+
 
 // Fonction pour traiter la commande /login
 void process_login_command(struct Joueur *joueur, const char *username)
@@ -223,4 +248,54 @@ bool is_valid_command(const char *command) {
         return true;
     }
     return false;
+}
+void ajouter_carte_a_main(struct Joueur *joueur, const char *paquet[])
+{
+    // Chercher la première carte disponible dans le paquet
+    int index_paquet = 0;
+    while (index_paquet < TAILLE_PAQUET && paquet[index_paquet] == NULL)
+    {
+        index_paquet++;
+    }
+
+    // Vérifier si le paquet n'est pas épuisé
+    if (index_paquet < TAILLE_PAQUET)
+    {
+        // Chercher la première place disponible dans la main du joueur
+        int index_main = 0;
+        while (index_main < TAILLE_MAIN && joueur->cartes[index_main][0] != '\0')
+        {
+            index_main++;
+        }
+
+        // Vérifier si la main du joueur n'est pas déjà pleine
+        if (index_main < TAILLE_MAIN)
+        {
+            // Ajouter la carte du paquet à la main du joueur
+            strcpy(joueur->cartes[index_main], paquet[index_paquet]);
+            // Marquer la carte comme distribuée en supprimant la référence du paquet
+            paquet[index_paquet] = NULL;
+        }
+        else
+        {
+            printf("La main du joueur est pleine, impossible d'ajouter une nouvelle carte.\n");
+        }
+    }
+    else
+    {
+        printf("Le paquet est épuisé, aucune carte à distribuer.\n");
+    }
+}
+
+// Fonction pour remettre une carte au paquet initial
+void remettre_carte_au_paquet(const char *carte, const char *paquet[], int taille_paquet)
+{
+    for (int i = 0; i < taille_paquet; ++i)
+    {
+        if (paquet[i] == NULL)
+        {
+            paquet[i] = carte;
+            break;
+        }
+    }
 }

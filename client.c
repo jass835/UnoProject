@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
         printf("2. see connected players\n");
         printf("3. see your hand\n");
         printf("4. play a card\n");
+        printf("5. pick a card\n"); // Nouvelle option pour choisir une carte
         printf("Enter your choice: ");
 
         int choice;
@@ -67,7 +68,6 @@ int main(int argc, char *argv[])
             buffer[strcspn(buffer, "\n")] = '\0';
             // Concaténer la commande "/login " avant le nom d'utilisateur
             strncpy(buffer, "/login ", COMMAND_SIZE);
-            printf("%s", buffer);
             break;
 
         case 2:
@@ -84,6 +84,10 @@ int main(int argc, char *argv[])
             // Concaténer la commande "/play " avant la carte
             strncpy(buffer, "/play ", COMMAND_SIZE);
             strcat(buffer, buffer + COMMAND_SIZE);
+            break;
+        
+        case 5:
+            strcpy(buffer, "/pick");
             break;
 
         default:
@@ -112,3 +116,4 @@ int main(int argc, char *argv[])
     close(sockfd);
     return 0;
 }
+

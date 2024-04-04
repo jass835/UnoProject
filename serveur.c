@@ -14,6 +14,8 @@
 #define DEFAULT_PLAYERS_MINI 3
 #define BUFFER_SIZE 1024
 
+char derniere_carte[BUFFER_SIZE]; // Variable globale pour stocker la dernière carte jouée
+
 int main(int argc, char *argv[])
 {
     int opt;
@@ -116,7 +118,7 @@ int main(int argc, char *argv[])
             }
 
             // Distribuer les cartes au nouveau joueur
-            distribuer_cartes(premier_joueur, Paquet, true); // Distribue uniquement au nouveau joueur
+            distribuer_cartes_et_mettre_a_jour_paquet(premier_joueur, Paquet, true); // Distribue uniquement au nouveau joueur
         }
 
         joueur_actuel = premier_joueur;
@@ -268,6 +270,12 @@ int main(int argc, char *argv[])
                                     // Marquer que la commande /play a été tentée
                                     play_attempted = true;
 
+                                    // Ajouter la carte jouée au paquet initial
+                                    remettre_carte_au_paquet(carte_commande, Paquet, TAILLE_PAQUET);
+
+                                    // Stocker la dernière carte jouée
+                                    strcpy(derniere_carte, carte_commande);
+
                                     // Envoyer un message de confirmation au joueur
                                     char success_message[] = "00 OK\n";
                                     write(joueur_actuel->socket_id, success_message, strlen(success_message));
@@ -288,12 +296,55 @@ int main(int argc, char *argv[])
                                 }
                             }
                         }
+                        else if (strncmp(buffer, "/pick", 5) == 0)
+                        {
+                            // Vérifier si le nombre minimum de joueurs est atteint pour permettre à /pick
+                            if (nombre_joueurs < players_mini)
+                            {
+                                // Envoyer un message d'erreur indiquant qu'il n'y a pas assez de joueurs
+                                char error_message[50];
+                                sprintf(error_message, "20 Waiting for at least %d more user(s)\n", players_mini - nombre_joueurs);
+                                write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                            }
+                            else
+                            {
+                                // Assurer que c'est le tour du joueur autorisé
+                                if (joueur_actuel == joueur_autorise)
+                                {
+                                    // Ajouter une carte du paquet à la main du joueur
+                                    ajouter_carte_a_main(joueur_actuel, Paquet);
+
+                                    // Envoyer un message de confirmation au joueur
+                                    char success_message[] = "00 OK\n";
+                                    write(joueur_actuel->socket_id, success_message, strlen(success_message));
+
+                                    // Passer au joueur suivant comme joueur autorisé
+                                    joueur_autorise = joueur_autorise->suivant;
+                                    if (joueur_autorise == NULL)
+                                    {
+                                        joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                    }
+                                }
+                                else
+                                {
+                                    // Envoyer un message d'erreur si ce n'est pas le tour du joueur autorisé
+                                    char error_message[] = "11 Not your turn\n";
+                                    write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                }
+                            }
+                        }
 
                         // Vérifier si le nombre minimum de joueurs est atteint
                         if (nombre_joueurs >= players_mini)
                         {
                             players_minimum_reached = true;
                         }
+                    }
+                    // Ajout de la commande "/heap" pour voir la dernière carte jouée
+                    else if (strncmp(buffer, "/heap", 5) == 0)
+                    {
+                        // Envoyer la dernière carte jouée au joueur
+                        write(joueur_actuel->socket_id, derniere_carte, strlen(derniere_carte));
                     }
                 }
             }
