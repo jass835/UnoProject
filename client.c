@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
             fgets(buffer + COMMAND_SIZE, BUFFER_SIZE - COMMAND_SIZE, stdin);
             // Supprimer le caractère de nouvelle ligne de la chaîne lue
             buffer[strcspn(buffer, "\n")] = '\0';
-            // Concaténer la commande "/login " avant le nom d'utilisateur
-            strncpy(buffer, "/login", COMMAND_SIZE);
+            // Copier la commande "/login " avant le nom d'utilisateur
+            strncpy(buffer, "/login ", COMMAND_SIZE);
             break;
 
         case 2:
