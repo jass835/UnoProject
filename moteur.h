@@ -41,10 +41,7 @@ void process_login_command(struct Joueur *joueur, const char *username);
 bool is_valid_command(const char *command);
 void ajouter_carte_a_main(struct Joueur *joueur, const char *paquet[]);
 void remettre_carte_au_paquet(const char *carte, const char *paquet[], int taille_paquet);
-<<<<<<< HEAD
 bool carte_jouable(const char* carte_jouee, const char* derniere_carte);
-=======
->>>>>>> origin/main
 
 extern bool partie_en_cours;
 extern struct Joueur *premier_joueur;

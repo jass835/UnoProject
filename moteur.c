@@ -306,7 +306,6 @@ void remettre_carte_au_paquet(const char *carte, const char *paquet[], int taill
         }
     }
 }
-<<<<<<< HEAD
 
 // Fonction de vérification si une carte peut être jouée après une autre
 bool carte_jouable(const char *carte_jouee, const char *derniere_carte)
@@ -338,5 +337,3 @@ bool carte_jouable(const char *carte_jouee, const char *derniere_carte)
 
     return false; // La carte ne peut pas être jouée après la dernière carte
 }
-=======
->>>>>>> origin/main
