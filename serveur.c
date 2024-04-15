@@ -255,7 +255,98 @@ int main(int argc, char *argv[])
                                 write(joueur_actuel->socket_id, error_message, strlen(error_message));
                             }
 
+                            // Vérifier si la carte spécifiée est "KJ" ou "K+"
+                            else if (strncmp(buffer, "/play KJ", 8) == 0 || strncmp(buffer, "/play K+", 8) == 0)
+                            {
+                                // Vérifier si la commande contient également une couleur (B, Y, R, G)
+                                if (strlen(buffer) != 10)
+                                {
+                                    // Si la commande "/play KJ" ou "/play K+" est utilisée sans spécifier de couleur, renvoyer "10 Bad Command"
+                                    char error_message[] = "10 Bad Command\n";
+                                    write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                }
+                                else
+                                {
+                                    // Traiter normalement la commande "/play KJ" ou "/play K+"
+                                    // Extraire la couleur de la commande
+                                    char *couleur = buffer + 9;
 
+                                    // Vérifier si la couleur est valide (B, Y, R, G)
+                                    if (couleur[0] == 'B' || couleur[0] == 'Y' || couleur[0] == 'R' || couleur[0] == 'G')
+                                    {
+                                        // Extraire la carte du jeu spécifiée dans la commande
+                                        const char *carte_commande = buffer + 6; // Ignorer "/play " dans le buffer
+                                                                                 // Extraire seulement la partie "KJ" ou "K+"
+                                        char carte_sans_couleur[3];
+                                        strncpy(carte_sans_couleur, carte_commande, 2);
+                                        carte_sans_couleur[2] = '\0'; // Ajouter le caractère de fin de chaîne
+
+                                        // Trouver l'indice de la carte dans la main du joueur
+                                        int indice_carte = -1;
+                                        for (int i = 0; i < TAILLE_MAIN; i++)
+                                        {
+                                            if (strncmp(joueur_actuel->cartes[i], carte_sans_couleur, 2) == 0)
+                                            {
+                                                indice_carte = i;
+                                                break;
+                                            }
+                                        }
+
+                                        // Si la carte spécifiée est trouvée dans la main du joueur
+                                        if (indice_carte != -1)
+                                        {
+                                            if (carte_jouable(carte_commande, derniere_carte) || strcmp(derniere_carte, "/0") == 0)
+                                            {
+
+                                                // Retirer la carte de la main du joueur
+                                                for (int i = indice_carte; i < TAILLE_MAIN - 1; i++)
+                                                {
+                                                    strcpy(joueur_actuel->cartes[i], joueur_actuel->cartes[i + 1]);
+                                                }
+                                                strcpy(joueur_actuel->cartes[TAILLE_MAIN - 1], "");
+                                                // Marquer que la commande /play a été tentée
+                                                play_attempted = true;
+
+                                                // Ajouter la carte jouée au paquet initial
+                                                remettre_carte_au_paquet(carte_commande, Paquet, TAILLE_PAQUET);
+
+                                                // Stocker la dernière carte jouée
+                                                strcpy(derniere_carte, carte_commande);
+
+                                                // Envoyer un message de confirmation au joueur
+                                                char success_message[] = "00 OK\n";
+                                                write(joueur_actuel->socket_id, success_message, strlen(success_message));
+
+                                                // Passer au joueur suivant comme joueur autorisé
+                                                joueur_autorise = joueur_autorise->suivant;
+                                                if (joueur_autorise == NULL)
+                                                {
+                                                    joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                                }
+                                            }
+
+                                            else
+                                            {
+                                                char error_message[] = "14 Bad card\n";
+                                                write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                            }
+                                        }
+
+                                        else
+                                        {
+                                            // Envoyer un message d'erreur si la carte spécifiée n'est pas dans la main du joueur
+                                            char error_message[] = "13 Not your card\n";
+                                            write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Si la couleur spécifiée n'est pas valide, renvoyer "10 Bad Command"
+                                        char error_message[] = "12 Bad color\n";
+                                        write(joueur_actuel->socket_id, error_message, strlen(error_message));
+                                    }
+                                }
+                            }
                             else // Si la condition n'est pas remplie ou ce n'est pas la première tentative, traiter normalement
                             {
                                 // Extraire la carte du jeu spécifiée dans la commande
@@ -320,6 +411,7 @@ int main(int argc, char *argv[])
                                 }
                             }
                         }
+
                         else if (strncmp(buffer, "/pick", 5) == 0)
                         {
                             // Vérifier si le nombre minimum de joueurs est atteint pour permettre à /pick
