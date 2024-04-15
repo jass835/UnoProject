@@ -347,6 +347,7 @@ int main(int argc, char *argv[])
                                     }
                                 }
                             }
+
                             else // Si la condition n'est pas remplie ou ce n'est pas la première tentative, traiter normalement
                             {
                                 // Extraire la carte du jeu spécifiée dans la commande
@@ -366,9 +367,27 @@ int main(int argc, char *argv[])
                                 // Si la carte spécifiée est trouvée dans la main du joueur
                                 if (indice_carte != -1)
                                 {
+                                    // Vérifier si la carte jouée est un +2 et n'est pas un joker
+                                    if (carte_commande[1] == '+' && carte_commande[0] != 'K')
+                                    {
+                                        // Passer au joueur suivant comme joueur autorisé
+                                        joueur_autorise = joueur_autorise->suivant;
+                                        if (joueur_autorise == NULL)
+                                        {
+                                            joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                        }
+
+                                        // Ajouter deux cartes au joueur suivant
+                                        ajouter_carte_a_main(joueur_autorise, Paquet);
+                                        ajouter_carte_a_main(joueur_autorise, Paquet);
+
+                                        // Envoyer un message au joueur suivant pour lui indiquer qu'il a pioché 2 cartes
+                                        char pioche_message[] = "Vous avez pioché 2 cartes\n";
+                                        write(joueur_autorise->socket_id, pioche_message, strlen(pioche_message));
+                                    }
+
                                     if (carte_jouable(carte_commande, derniere_carte) || strcmp(derniere_carte, "/0") == 0)
                                     {
-
                                         // Retirer la carte de la main du joueur
                                         for (int i = indice_carte; i < TAILLE_MAIN - 1; i++)
                                         {
@@ -388,11 +407,14 @@ int main(int argc, char *argv[])
                                         char success_message[] = "00 OK\n";
                                         write(joueur_actuel->socket_id, success_message, strlen(success_message));
 
-                                        // Passer au joueur suivant comme joueur autorisé
-                                        joueur_autorise = joueur_autorise->suivant;
-                                        if (joueur_autorise == NULL)
+                                        // Passer au joueur suivant comme joueur autorisé si ce n'était pas déjà fait pour le +2
+                                        if (!(carte_commande[1] == '+' && carte_commande[2] == '2'))
                                         {
-                                            joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                            joueur_autorise = joueur_autorise->suivant;
+                                            if (joueur_autorise == NULL)
+                                            {
+                                                joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                            }
                                         }
                                     }
 
