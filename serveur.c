@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
                             }
 
                             // Vérifier si le nombre de caractères est correct
-                            else if (strlen(buffer) != 8 || strlen(buffer) != 10)
+                            else if (strlen(buffer) != 8 && strlen(buffer) != 10)
                             {
                                 char error_message[] = "14 Bad card\n";
                                 write(joueur_actuel->socket_id, error_message, strlen(error_message));
