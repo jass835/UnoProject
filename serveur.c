@@ -298,6 +298,74 @@ int main(int argc, char *argv[])
 
                                             if (carte_jouable(carte_commande, derniere_carte) || strcmp(derniere_carte, "/0") == 0)
                                             {
+                                                if (carte_commande[1] == '+' && carte_commande[0] == 'K')
+                                                {
+                                                    // Passer au joueur suivant comme joueur autorisé
+                                                    joueur_autorise = joueur_autorise->suivant;
+                                                    if (joueur_autorise == NULL)
+                                                    {
+                                                        joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                                    }
+
+                                                    // Ajouter deux cartes au joueur suivant
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    // Retirer la carte de la main du joueur
+                                                    for (int i = indice_carte; i < TAILLE_MAIN - 1; i++)
+                                                    {
+                                                        strcpy(joueur_actuel->cartes[i], joueur_actuel->cartes[i + 1]);
+                                                    }
+                                                    strcpy(joueur_actuel->cartes[TAILLE_MAIN - 1], "");
+                                                    // Marquer que la commande /play a été tentée
+                                                    play_attempted = true;
+
+                                                    // Ajouter la carte jouée au paquet initial
+                                                    remettre_carte_au_paquet(carte_commande, Paquet, TAILLE_PAQUET);
+
+                                                    // Stocker la dernière carte jouée
+                                                    strcpy(derniere_carte, carte_commande);
+
+                                                    // Envoyer un message de confirmation au joueur
+                                                    char success_message[] = "00 OK\n";
+                                                    write(joueur_actuel->socket_id, success_message, strlen(success_message));
+                                                    // Vérifier si la main du joueur est vide après avoir joué une carte
+                                                    if (main_vide(joueur_actuel->cartes, TAILLE_MAIN))
+                                                    {
+                                                        // Envoyer le message de victoire au joueur
+                                                        char win_message[] = "/youwin\n";
+                                                        write(joueur_actuel->socket_id, win_message, strlen(win_message));
+                                                        // Vérifier s'il reste un seul joueur qui n'a pas gagné
+                                                        if (nombre_joueurs == 1)
+                                                        {
+                                                            struct Joueur *joueur_gagnant = trouver_joueur_gagnant(premier_joueur);
+                                                            // Envoyer le message de défaite à tous les joueurs sauf au joueur gagnant
+                                                            struct Joueur *joueur_perdant = premier_joueur;
+                                                            while (joueur_perdant != NULL)
+                                                            {
+                                                                if (joueur_perdant != joueur_gagnant)
+                                                                {
+                                                                    char lose_message[] = "/youlost\n";
+                                                                    write(joueur_perdant->socket_id, lose_message, strlen(lose_message));
+                                                                }
+                                                                joueur_perdant = joueur_perdant->suivant;
+                                                            }
+                                                            // Terminer le jeu
+                                                            exit(EXIT_SUCCESS);
+                                                        }
+                                                        // Ne pas permettre au joueur de jouer s'il a gagné
+                                                        continue;
+                                                    }
+
+                                                    // Passer au joueur suivant comme joueur autorisé
+                                                    joueur_autorise = joueur_autorise->suivant;
+                                                    if (joueur_autorise == NULL)
+                                                    {
+                                                        joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                                    }
+                                                }
+                                                else {
                                                 if (carte_commande[0] == 'K' && carte_commande[1] == '+')
                                                 {
                                                     // Passer au joueur suivant comme joueur autorisé
@@ -332,6 +400,33 @@ int main(int argc, char *argv[])
                                                 // Envoyer un message de confirmation au joueur
                                                 char success_message[] = "00 OK\n";
                                                 write(joueur_actuel->socket_id, success_message, strlen(success_message));
+                                                // Vérifier si la main du joueur est vide après avoir joué une carte
+                                                if (main_vide(joueur_actuel->cartes, TAILLE_MAIN))
+                                                {
+                                                    // Envoyer le message de victoire au joueur
+                                                    char win_message[] = "/youwin\n";
+                                                    write(joueur_actuel->socket_id, win_message, strlen(win_message));
+                                                    // Vérifier s'il reste un seul joueur qui n'a pas gagné
+                                                    if (nombre_joueurs == 1)
+                                                    {
+                                                        struct Joueur *joueur_gagnant = trouver_joueur_gagnant(premier_joueur);
+                                                        // Envoyer le message de défaite à tous les joueurs sauf au joueur gagnant
+                                                        struct Joueur *joueur_perdant = premier_joueur;
+                                                        while (joueur_perdant != NULL)
+                                                        {
+                                                            if (joueur_perdant != joueur_gagnant)
+                                                            {
+                                                                char lose_message[] = "/youlost\n";
+                                                                write(joueur_perdant->socket_id, lose_message, strlen(lose_message));
+                                                            }
+                                                            joueur_perdant = joueur_perdant->suivant;
+                                                        }
+                                                        // Terminer le jeu
+                                                        exit(EXIT_SUCCESS);
+                                                    }
+                                                    // Ne pas permettre au joueur de jouer s'il a gagné
+                                                    continue;
+                                                }
 
                                                 // Passer au joueur suivant comme joueur autorisé
                                                 joueur_autorise = joueur_autorise->suivant;
@@ -340,7 +435,7 @@ int main(int argc, char *argv[])
                                                     joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
                                                 }
                                             }
-
+                                            }
                                             else
                                             {
                                                 char error_message[] = "14 Bad card\n";
@@ -428,6 +523,33 @@ int main(int argc, char *argv[])
                                         // Envoyer un message de confirmation au joueur
                                         char success_message[] = "00 OK\n";
                                         write(joueur_actuel->socket_id, success_message, strlen(success_message));
+                                        // Vérifier si la main du joueur est vide après avoir joué une carte
+                                        if (main_vide(joueur_actuel->cartes, TAILLE_MAIN))
+                                        {
+                                            // Envoyer le message de victoire au joueur
+                                            char win_message[] = "/youwin\n";
+                                            write(joueur_actuel->socket_id, win_message, strlen(win_message));
+                                            // Vérifier s'il reste un seul joueur qui n'a pas gagné
+                                            if (nombre_joueurs == 1)
+                                            {
+                                                struct Joueur *joueur_gagnant = trouver_joueur_gagnant(premier_joueur);
+                                                // Envoyer le message de défaite à tous les joueurs sauf au joueur gagnant
+                                                struct Joueur *joueur_perdant = premier_joueur;
+                                                while (joueur_perdant != NULL)
+                                                {
+                                                    if (joueur_perdant != joueur_gagnant)
+                                                    {
+                                                        char lose_message[] = "/youlost\n";
+                                                        write(joueur_perdant->socket_id, lose_message, strlen(lose_message));
+                                                    }
+                                                    joueur_perdant = joueur_perdant->suivant;
+                                                }
+                                                // Terminer le jeu
+                                                exit(EXIT_SUCCESS);
+                                            }
+                                            // Ne pas permettre au joueur de jouer s'il a gagné
+                                            continue;
+                                        }
 
                                         // Passer au joueur suivant comme joueur autorisé si ce n'était pas déjà fait pour le +2
                                         if (!(carte_commande[1] == '+' && carte_commande[2] == '2'))

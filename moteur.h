@@ -42,7 +42,8 @@ bool is_valid_command(const char *command);
 void ajouter_carte_a_main(struct Joueur *joueur, const char *paquet[]);
 void remettre_carte_au_paquet(const char *carte, const char *paquet[], int taille_paquet);
 bool carte_jouable(const char* carte_jouee, const char* derniere_carte);
-
+struct Joueur* trouver_joueur_gagnant(struct Joueur *premier_joueur);
+bool main_vide(char main_joueur[][3], int taille_main);
 extern bool partie_en_cours;
 extern struct Joueur *premier_joueur;
 extern int nombre_joueurs;
