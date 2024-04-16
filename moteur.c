@@ -337,3 +337,24 @@ bool carte_jouable(const char *carte_jouee, const char *derniere_carte)
 
     return false; // La carte ne peut pas être jouée après la dernière carte
 }
+// Fonction pour vérifier si la main d'un joueur est vide
+bool main_vide(char main_joueur[][3], int taille_main) {
+    for (int i = 0; i < taille_main; i++) {
+        if (strcmp(main_joueur[i], "") != 0) {
+            return false; // La main n'est pas vide
+        }
+    }
+    return true; // La main est vide
+}
+
+// Fonction pour trouver le joueur gagnant parmi ceux qui restent
+struct Joueur* trouver_joueur_gagnant(struct Joueur *premier_joueur) {
+    struct Joueur *joueur = premier_joueur;
+    while (joueur != NULL) {
+        if (!main_vide(joueur->cartes, TAILLE_MAIN)) {
+            return joueur; // Le joueur n'a pas encore gagné
+        }
+        joueur = joueur->suivant;
+    }
+    return NULL; // Aucun joueur n'a été trouvé (tous ont gagné)
+}
