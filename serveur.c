@@ -295,8 +295,24 @@ int main(int argc, char *argv[])
                                         // Si la carte spécifiée est trouvée dans la main du joueur
                                         if (indice_carte != -1)
                                         {
+
                                             if (carte_jouable(carte_commande, derniere_carte) || strcmp(derniere_carte, "/0") == 0)
                                             {
+                                                if (carte_commande[0] == 'K' && carte_commande[1] == '+')
+                                                {
+                                                    // Passer au joueur suivant comme joueur autorisé
+                                                    joueur_autorise = joueur_autorise->suivant;
+                                                    if (joueur_autorise == NULL)
+                                                    {
+                                                        joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                                    }
+
+                                                    // Ajouter quatre cartes au joueur suivant
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                    ajouter_carte_a_main(joueur_autorise, Paquet);
+                                                }
 
                                                 // Retirer la carte de la main du joueur
                                                 for (int i = indice_carte; i < TAILLE_MAIN - 1; i++)
@@ -380,10 +396,16 @@ int main(int argc, char *argv[])
                                         // Ajouter deux cartes au joueur suivant
                                         ajouter_carte_a_main(joueur_autorise, Paquet);
                                         ajouter_carte_a_main(joueur_autorise, Paquet);
+                                    }
 
-                                        // Envoyer un message au joueur suivant pour lui indiquer qu'il a pioché 2 cartes
-                                        char pioche_message[] = "Vous avez pioché 2 cartes\n";
-                                        write(joueur_autorise->socket_id, pioche_message, strlen(pioche_message));
+                                    if (carte_commande[1] == '~')
+                                    {
+                                        // Passer au joueur suivant comme joueur autorisé
+                                        joueur_autorise = joueur_autorise->suivant;
+                                        if (joueur_autorise == NULL)
+                                        {
+                                            joueur_autorise = premier_joueur; // Revenir au premier joueur si le dernier joueur a joué
+                                        }
                                     }
 
                                     if (carte_jouable(carte_commande, derniere_carte) || strcmp(derniere_carte, "/0") == 0)
